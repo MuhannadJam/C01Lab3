@@ -38,15 +38,43 @@ function App() {
     getNotes()
   }, [])
 
-  const deleteNote = (entry) => {
-    // Code for DELETE here
-  }
-
-  const deleteAllNotes = () => {
-    // Code for DELETE all notes here
-  }
-
+  const deleteNote = async (entry) => {
+    try {
+      const response = await fetch(`http://localhost:4000/deleteNote/${entry._id}`, {
+        method: 'DELETE',
+      });
   
+      if (!response.ok) {
+        console.log("Server failed:", response.status);
+      } else {
+        deleteNoteState(entry._id)
+      }
+    } catch (error) {
+      console.log("Fetch function failed:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+  const deleteAllNotes = async () => {
+    try {
+      const response = await fetch(`http://localhost:4000/deleteAllNotes`, {
+        method: 'DELETE',
+      });
+  
+      if (!response.ok) {
+        console.log("Server failed:", response.status);
+      } else {
+        deleteAllNotesState()
+      }
+    } catch (error) {
+      console.log("Fetch function failed:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   // -- Dialog functions --
   const editNote = (entry) => {
     setDialogNote(entry)
@@ -72,16 +100,22 @@ function App() {
     setNotes((prevNotes) => [...prevNotes, {_id, title, content}])
   }
 
-  const deleteNoteState = () => {
-    // Code for modifying state after DELETE here
+  const deleteNoteState = (id) => {
+    setNotes((prevNotes) => prevNotes.filter((note) => note._id !== id))
   }
 
   const deleteAllNotesState = () => {
-    // Code for modifying state after DELETE all here
+    setNotes([])
+    setLoading(false);
   }
 
   const patchNoteState = (_id, title, content) => {
-    // Code for modifying state after PATCH here
+    setNotes((prevNotes) => prevNotes.map((note => {
+      if(note._id === _id) {
+        return { ...note, title, content};
+      }
+      return note;
+    })))
   }
 
   return (
@@ -130,8 +164,8 @@ function App() {
           initialNote={dialogNote}
           closeDialog={closeDialog}
           postNote={postNoteState}
-          // patchNote={patchNoteState}
-          />
+          patchNote={patchNoteState}
+        />
 
       </header>
     </div>
